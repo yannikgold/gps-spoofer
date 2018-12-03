@@ -15,14 +15,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.maps.GeoApiContext;
 
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "FAKEGPS";
     private TextView tvLatitude, tvLongitude;
+    private GeoApiContext mContext;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +62,9 @@ public class MainActivity extends AppCompatActivity {
         tvLongitude = findViewById(R.id.tvLong);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter("UpdateLocation"));
+
+        mContext = new GeoApiContext().setApiKey(getString(R.string.google_maps_web_services_key));
+
     }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
