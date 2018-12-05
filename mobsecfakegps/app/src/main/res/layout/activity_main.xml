@@ -155,6 +155,12 @@
                 android:text="@string/ModLong" />
         </LinearLayout>
 
+        <Button
+            android:id="@+id/runSimulation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simulation" />
+
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
