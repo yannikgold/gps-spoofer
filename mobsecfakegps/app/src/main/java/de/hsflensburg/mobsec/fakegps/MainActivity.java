@@ -41,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.LocationSet).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                intent.removeExtra("mode");
+                intent.putExtra("mode", "start");
                 startService(intent);
                 Toast.makeText(ctx, "Thread gestartet", Toast.LENGTH_SHORT).show();
             }
@@ -55,6 +57,16 @@ public class MainActivity extends AppCompatActivity {
                 LocalBroadcastManager.getInstance(ctx).sendBroadcast(stopIntent);
 
                 Toast.makeText(ctx, "Thread gestoppt", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        findViewById(R.id.runSimulation).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                intent.removeExtra("mode");
+                intent.putExtra("mode", "simulate");
+                startService(intent);
+                Toast.makeText(ctx, "Simulation gestartet", Toast.LENGTH_SHORT).show();
             }
         });
 

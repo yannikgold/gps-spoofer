@@ -19,6 +19,7 @@ import android.os.SystemClock;
 
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.util.Xml;
 import android.widget.RadioGroup;
 
 
@@ -27,6 +28,11 @@ import com.google.maps.RoadsApi;
 import com.google.maps.model.LatLng;
 import com.google.maps.model.SnappedPoint;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -44,23 +50,16 @@ public class MockLocationService extends Service {
     private LatLng[] page = new LatLng[PAGINATION_OVERLAP];
     private double diffLatitude = 0.01;//Double.parseDouble(getString(R.string.SetLat));
     private double diffLongitude = 0.01;//Double.parseDouble(getString(R.string.SetLong));
-    /**
-     * The API context used for the Roads and Geocoding web service APIs.
-     */
     private GeoApiContext mContext;
-
     private boolean firstRun = true;
     private int loop = 0;
-
     private List<LatLng> listPos = null;
-
-
     private int POIndex = 0;
     private SnappedPoint newLoc = null;
+    private int simulationListIndex = 0;
+    private List<LatLng> simulationList = new ArrayList<>();
 
-
-
-    private Runnable runnable = new Runnable() {
+    private Runnable mockRunnable = new Runnable() {
         @Override
         public void run() {
             Log.d(TAG, "Thread wird ausgeführt!");
@@ -72,7 +71,6 @@ public class MockLocationService extends Service {
                     actLoc = locList.mLastLocation;
                 }
             }
-
 
             double newLat = actLoc.getLatitude() + diffLatitude;
             double newLng = actLoc.getLongitude() + diffLongitude;
@@ -110,7 +108,35 @@ public class MockLocationService extends Service {
            //     setMockLocation(newLat, newLng, 10);
             }
 
-            handler.postDelayed(runnable, 500);
+            handler.postDelayed(mockRunnable, 500);
+        }
+    };
+
+    private Runnable simulateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "Simulation wird ausgeführt!");
+            Location actLoc = null;
+
+            if(simulationListIndex == 0)
+                page[0] = simulationList.get(0);
+
+            if(simulationList.size() <= simulationListIndex)
+                simulationListIndex = 0;
+            page[1] = simulationList.get(simulationListIndex++);
+
+            callRoadsAPI();
+
+            if (newLoc != null) {
+                LatLng newLL = newLoc.location;
+                double SnappedLat = newLL.lat;
+                double SnappedLng = newLL.lng;
+
+                setMockLocation(SnappedLat, SnappedLng, 10);
+                page[0] = new LatLng(SnappedLat, SnappedLng);
+            }
+
+            handler.postDelayed(simulateRunnable, 500);
         }
     };
 
@@ -152,41 +178,59 @@ public class MockLocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
+
+        String mode = intent.getStringExtra("mode");
+
+        mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+
+        switch (mode){
+            case "start":
+                mLocationListeners = new MyLocationListener[]{
+                        new MyLocationListener(LocationManager.GPS_PROVIDER, getApplicationContext()),
+                        new MyLocationListener(LocationManager.NETWORK_PROVIDER, getApplicationContext())
+                };
+
+                try {
+                    mLocationManager.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                            mLocationListeners[1]);
+                } catch (java.lang.SecurityException ex) {
+                    Log.i(TAG, "fail to request location update, ignore", ex);
+                } catch (IllegalArgumentException ex) {
+                    Log.d(TAG, "network provider does not exist, " + ex.getMessage());
+                }
+
+                try {
+                    mLocationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                            mLocationListeners[0]);
+                } catch (java.lang.SecurityException ex) {
+                    Log.i(TAG, "fail to request location update, ignore", ex);
+                } catch (IllegalArgumentException ex) {
+                    Log.d(TAG, "gps provider does not exist " + ex.getMessage());
+                }
+
+                handler.post(mockRunnable);
+                break;
+            case "simulate":
+                try {
+                    simulationList = loadGpxData(Xml.newPullParser(), getResources().openRawResource(R.raw.gpx_data));
+                } catch (XmlPullParserException | IOException e){
+                    e.printStackTrace();
+                }
+                simulationListIndex = 0;
+                handler.post(simulateRunnable);
+                break;
+        }
+
         return START_STICKY;
     }
 
     @Override
     public void onCreate() {
         Log.e(TAG, "onCreate");
-
         mContext = new GeoApiContext().setApiKey(getString(R.string.google_maps_web_services_key));
 
-        mLocationListeners = new MyLocationListener[]{
-                new MyLocationListener(LocationManager.GPS_PROVIDER, getApplicationContext()),
-                new MyLocationListener(LocationManager.NETWORK_PROVIDER, getApplicationContext())
-        };
-
-        initializeLocationManager();
-        try {
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[1]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "network provider does not exist, " + ex.getMessage());
-        }
-        try {
-            mLocationManager.requestLocationUpdates(
-                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
-                    mLocationListeners[0]);
-        } catch (java.lang.SecurityException ex) {
-            Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            Log.d(TAG, "gps provider does not exist " + ex.getMessage());
-        }
-
-        handler.post(runnable);
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter("StopUpdate"));
     }
 
@@ -194,24 +238,18 @@ public class MockLocationService extends Service {
     public void onDestroy() {
         Log.e(TAG, "onDestroy");
         super.onDestroy();
-        if (mLocationManager != null) {
+        if (mLocationManager != null && mLocationListeners != null) {
             for (int i = 0; i < mLocationListeners.length; i++) {
                 try {
                     mLocationManager.removeUpdates(mLocationListeners[i]);
                 } catch (Exception ex) {
-                    Log.i(TAG, "fail to remove location listners, ignore", ex);
+                    Log.i(TAG, "fail to remove location listeners, ignore", ex);
                 }
             }
         }
 
-        handler.removeCallbacks(runnable);
-    }
-
-    private void initializeLocationManager() {
-        Log.e(TAG, "initializeLocationManager");
-        if (mLocationManager == null) {
-            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-        }
+        handler.removeCallbacks(mockRunnable);
+        handler.removeCallbacks(simulateRunnable);
     }
 
     private void setMockLocation(double latitude, double longitude, float accuracy) {
@@ -246,8 +284,32 @@ public class MockLocationService extends Service {
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            handler.removeCallbacks(runnable);
+            handler.removeCallbacks(mockRunnable);
+            handler.removeCallbacks(simulateRunnable);
         }
     };
+
+    private List<LatLng> loadGpxData(XmlPullParser parser, InputStream gpxIn)
+            throws XmlPullParserException, IOException {
+        List<LatLng> latLngs = new ArrayList<>();   // List<> as we need subList for paging later
+        parser.setInput(gpxIn, null);
+        parser.nextTag();
+
+        while (parser.next() != XmlPullParser.END_DOCUMENT) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+
+            if (parser.getName().equals("wpt")) {
+                // Save the discovered lat/lon attributes in each <wpt>
+                latLngs.add(new LatLng(
+                        Double.valueOf(parser.getAttributeValue(null, "lat")),
+                        Double.valueOf(parser.getAttributeValue(null, "lon"))));
+            }
+            // Otherwise, skip irrelevant data
+        }
+
+        return latLngs;
+    }
 
 }
