@@ -29,21 +29,30 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvLatIs, tvLngIs;
     private GeoApiContext mContext;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle("GPS Spoofer");
 
         final MockLocationService service = new MockLocationService();
         final Intent intent = new Intent(this, MockLocationService.class);
         final Context ctx = this;
 
+        final TextView tvDiffLat = findViewById(R.id.editTextSetLat);
+        final TextView tvDiffLng = findViewById(R.id.editTextSetLong);
+
+
         findViewById(R.id.LocationSet).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                double difLat = Double.parseDouble(tvDiffLat.getText().toString());
+                double difLng = Double.parseDouble(tvDiffLng.getText().toString());
+
                 intent.removeExtra("mode");
                 intent.putExtra("mode", "start");
+                intent.putExtra("diffLatitude", difLat);
+                intent.putExtra("diffLongitude", difLng);
                 startService(intent);
                 Toast.makeText(ctx, "Thread gestartet", Toast.LENGTH_SHORT).show();
             }
@@ -64,8 +73,13 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.runSimulation).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                double difLat = Double.parseDouble(tvDiffLat.getText().toString());
+                double difLng = Double.parseDouble(tvDiffLng.getText().toString());
+
                 intent.removeExtra("mode");
                 intent.putExtra("mode", "simulate");
+                intent.putExtra("diffLatitude", difLat);
+                intent.putExtra("diffLongitude", difLng);
                 startService(intent);
                 Toast.makeText(ctx, "Simulation gestartet", Toast.LENGTH_SHORT).show();
             }
@@ -73,23 +87,27 @@ public class MainActivity extends AppCompatActivity {
 
         tvLatitude = findViewById(R.id.tvLat);
         tvLongitude = findViewById(R.id.tvLong);
-        tvLngIs = findViewById(R.id.tvLatIs);
-        tvLatIs = findViewById(R.id.tvLngIs);
+        tvLngIs = findViewById(R.id.tvLngIs);
+        tvLatIs = findViewById(R.id.tvLatIs);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter("UpdateLocation"));
 
         mContext = new GeoApiContext().setApiKey(getString(R.string.google_maps_web_services_key));
-
     }
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("MyLocation", "onReceive");
-            tvLatitude.setText("Latitude: " + Double.toString(intent.getDoubleExtra("Latitude", 0.0d)));
-            tvLongitude.setText("Longitude: " + Double.toString(intent.getDoubleExtra("Longitude", 0.0d)));
-            tvLatIs.setText("Latitude: " + Double.toString(intent.getDoubleExtra("Latitude", 0.0d)));
-            tvLngIs.setText("Longitude: " + Double.toString(intent.getDoubleExtra("Longitude", 0.0d)));
+            boolean original = intent.getBooleanExtra("original", false);
+
+            if(original) {
+                tvLatIs.setText("Latitude: " + Double.toString(intent.getDoubleExtra("Latitude", 0.0d)));
+                tvLngIs.setText("Longitude: " + Double.toString(intent.getDoubleExtra("Longitude", 0.0d)));
+            } else {
+                tvLatitude.setText("Latitude: " + Double.toString(intent.getDoubleExtra("Latitude", 0.0d)));
+                tvLongitude.setText("Longitude: " + Double.toString(intent.getDoubleExtra("Longitude", 0.0d)));
+            }
         }
     };
 }

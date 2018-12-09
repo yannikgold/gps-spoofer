@@ -23,10 +23,13 @@ public class MyLocationListener implements android.location.LocationListener{
         Log.e(TAG, "onLocationChanged: " + location);
         mLastLocation.set(location);
 
-        Intent intent = new Intent("UpdateLocation");
-        intent.putExtra("Latitude",mLastLocation.getLatitude());
-        intent.putExtra("Longitude",mLastLocation.getLongitude());
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        if(!location.isFromMockProvider()) {
+            Intent intent = new Intent("UpdateLocation");
+            intent.putExtra("original", true);
+            intent.putExtra("Latitude", location.getLatitude());
+            intent.putExtra("Longitude", location.getLongitude());
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        }
     }
 
     @Override

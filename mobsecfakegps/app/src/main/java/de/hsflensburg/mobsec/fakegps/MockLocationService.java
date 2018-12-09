@@ -48,13 +48,14 @@ public class MockLocationService extends Service {
     private static final int PAGINATION_OVERLAP = 2;
     private List<SnappedPoint> snappedPoints = new ArrayList<>();
     private LatLng[] page = new LatLng[PAGINATION_OVERLAP];
-    private double diffLatitude = 0.01; // Double.parseDouble(getString(R.string.SetLat));
-    private double diffLongitude = 0.01;; // Double.parseDouble(getString(R.string.SetLong));
+    private double diffLatitude;
+    private double diffLongitude;
     private GeoApiContext mContext;
     private boolean firstRun = true;
     private SnappedPoint newLoc = null;
     private int simulationListIndex = 0;
     private List<LatLng> simulationList = new ArrayList<>();
+    private Context context = this;
 
     private Runnable mockRunnable = new Runnable() {
 
@@ -87,8 +88,14 @@ public class MockLocationService extends Service {
                     double SnappedLng = SnappedLL.lng;
 
                     //calc Diff
-                    diffLatitude =SnappedLat - actLoc.getLatitude()  ;
-                    diffLongitude =SnappedLng- actLoc.getLongitude() ;
+                    diffLatitude = SnappedLat - actLoc.getLatitude()  ;
+                    diffLongitude = SnappedLng - actLoc.getLongitude() ;
+
+                    Intent intent = new Intent("UpdateLocation");
+                    intent.putExtra("original", false);
+                    intent.putExtra("Latitude", SnappedLat);
+                    intent.putExtra("Longitude", SnappedLng);
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
                     setMockLocation(SnappedLat, SnappedLng, 10);
                     page[0] = new LatLng(SnappedLat, SnappedLng);
@@ -110,6 +117,13 @@ public class MockLocationService extends Service {
 
             if(simulationList.size() <= simulationListIndex)
                 simulationListIndex = 0;
+
+            Intent origIntent = new Intent("UpdateLocation");
+            origIntent.putExtra("original", true);
+            origIntent.putExtra("Latitude", simulationList.get(simulationListIndex).lat);
+            origIntent.putExtra("Longitude", simulationList.get(simulationListIndex).lng);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(origIntent);
+
             page[1] = simulationList.get(simulationListIndex++);
 
             callRoadsAPI();
@@ -118,6 +132,12 @@ public class MockLocationService extends Service {
                 LatLng newLL = newLoc.location;
                 double SnappedLat = newLL.lat;
                 double SnappedLng = newLL.lng;
+
+                Intent intent = new Intent("UpdateLocation");
+                intent.putExtra("original", false);
+                intent.putExtra("Latitude", SnappedLat);
+                intent.putExtra("Longitude", SnappedLng);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
 
                 setMockLocation(SnappedLat, SnappedLng, 10);
                 page[0] = new LatLng(SnappedLat, SnappedLng);
@@ -158,6 +178,9 @@ public class MockLocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
+
+        diffLatitude = intent.getDoubleExtra("diffLatitude", 0.01d);
+        diffLongitude = intent.getDoubleExtra("diffLongitude", 0.01d);
 
         String mode = intent.getStringExtra("mode");
 
