@@ -77,7 +77,7 @@ public class MockLocationService extends Service {
 
             if(firstRun) {
                 firstRun = false;
-                page[0] = new LatLng(newLat, newLng);
+                page[0] = new LatLng(actLoc.getLatitude(), actLoc.getLongitude());
             }else{
                 callRoadsAPI();
                 if (newLoc != null) {
@@ -132,20 +132,13 @@ public class MockLocationService extends Service {
             @Override
             public void run() {
                 try {
-                    //snap
                     try {
                         mContext = new GeoApiContext().setApiKey(getString(R.string.google_maps_web_services_key));
                         SnappedPoint[] points = RoadsApi.snapToRoads(mContext, false, page).await();
-//
+
                         if (points != null){
                             newLoc = points[points.length-1];
-                    //        boolean passedOverlap = false;
-                    //        for (SnappedPoint point : points) {
-                    //            snappedPoints.add(point);
-                    //            newLoc = point;
-                    //        }
                         }
-                       // newLoc = snappedPoints.get();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
