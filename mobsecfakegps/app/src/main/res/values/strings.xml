@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FakeGps</string>
+    <string name="app_name">GPS-Spoofer</string>
     <string name="google_maps_web_services_key" templateMergeStrategy="preserve">AIzaSyCMr_RAVQ_J99pD0EDZOkwNHmt1sm4jh08</string>
     <string name="SetLong">0.01</string>
     <string name="SetLat">0.01</string>

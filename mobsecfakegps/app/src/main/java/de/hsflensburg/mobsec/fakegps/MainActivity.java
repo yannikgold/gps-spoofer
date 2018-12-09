@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setTitle("GPS Spoofer");
+        setTitle("GPS-Spoofer");
 
         final MockLocationService service = new MockLocationService();
         final Intent intent = new Intent(this, MockLocationService.class);

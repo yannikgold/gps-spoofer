@@ -19,8 +19,8 @@
             android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:textStyle="italic|bold"
-            android:text="Original Location" />
+            android:text="Original Location"
+            android:textStyle="italic|bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -61,8 +61,8 @@
             android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="1dp"
-            android:textStyle="italic|bold"
-            android:text="Modified Location" />
+            android:text="Modified Location"
+            android:textStyle="italic|bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -73,10 +73,10 @@
                 android:id="@+id/tvLong"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="6dp"
                 android:layout_marginBottom="16dp"
                 android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="6dp"
                 android:layout_weight="1"
                 android:text="Longitude" />
 
@@ -113,7 +113,7 @@
                 android:layout_marginStart="0dp"
                 android:layout_marginTop="0dp"
                 android:layout_weight="1"
-                android:text="Mod Lat" />
+                android:text="Modifier Latitude" />
 
             <EditText
                 android:id="@+id/editTextSetLat"
@@ -146,7 +146,7 @@
                 android:layout_marginStart="0dp"
                 android:layout_marginTop="0dp"
                 android:layout_weight="1"
-                android:text="Mod Long" />
+                android:text="Modifier Longitude" />
 
             <EditText
                 android:id="@+id/editTextSetLong"
