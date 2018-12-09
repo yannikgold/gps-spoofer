@@ -48,18 +48,16 @@ public class MockLocationService extends Service {
     private static final int PAGINATION_OVERLAP = 2;
     private List<SnappedPoint> snappedPoints = new ArrayList<>();
     private LatLng[] page = new LatLng[PAGINATION_OVERLAP];
-    private double diffLatitude = 0.01;//Double.parseDouble(getString(R.string.SetLat));
-    private double diffLongitude = 0.01;//Double.parseDouble(getString(R.string.SetLong));
+    private double diffLatitude = 0.01; // Double.parseDouble(getString(R.string.SetLat));
+    private double diffLongitude = 0.01;; // Double.parseDouble(getString(R.string.SetLong));
     private GeoApiContext mContext;
     private boolean firstRun = true;
-    private int loop = 0;
-    private List<LatLng> listPos = null;
-    private int POIndex = 0;
     private SnappedPoint newLoc = null;
     private int simulationListIndex = 0;
     private List<LatLng> simulationList = new ArrayList<>();
 
     private Runnable mockRunnable = new Runnable() {
+
         @Override
         public void run() {
             Log.d(TAG, "Thread wird ausgeführt!");
@@ -74,38 +72,27 @@ public class MockLocationService extends Service {
 
             double newLat = actLoc.getLatitude() + diffLatitude;
             double newLng = actLoc.getLongitude() + diffLongitude;
-            diffLatitude += Double.parseDouble(getString(R.string.ModLat));
-            diffLongitude += Double.parseDouble(getString(R.string.ModLat));
 
             page[1] = new LatLng(newLat, newLng);
-            loop++;
 
             if(firstRun) {
                 firstRun = false;
                 page[0] = new LatLng(newLat, newLng);
             }else{
-            //if (loop==PAGINATION_OVERLAP) {
                 callRoadsAPI();
-                loop = 0;
                 if (newLoc != null) {
 
-                    LatLng newLL = newLoc.location;
-                    double SnappedLat = newLL.lat; //54.776
-                    double SnappedLng = newLL.lng; //9.442
+                    LatLng SnappedLL = newLoc.location;
+                    double SnappedLat = SnappedLL.lat;
+                    double SnappedLng = SnappedLL.lng;
 
                     //calc Diff
-                    //diffLatitude =SnappedLat - actLoc.getLatitude()  ;
-                    //diffLongitude =SnappedLng- actLoc.getLongitude() ;
-                    // page[0] = new LatLng(SnappedLat, SnappedLng);
+                    diffLatitude =SnappedLat - actLoc.getLatitude()  ;
+                    diffLongitude =SnappedLng- actLoc.getLongitude() ;
 
-
-                    // if (actLoc != null) {
                     setMockLocation(SnappedLat, SnappedLng, 10);
                     page[0] = new LatLng(SnappedLat, SnappedLng);
                 }
-           // }
-           // }else{
-           //     setMockLocation(newLat, newLng, 10);
             }
 
             handler.postDelayed(mockRunnable, 500);

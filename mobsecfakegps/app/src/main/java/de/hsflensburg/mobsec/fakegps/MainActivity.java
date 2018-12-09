@@ -26,6 +26,7 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "FAKEGPS";
     private TextView tvLatitude, tvLongitude;
+    private TextView tvLatIs, tvLngIs;
     private GeoApiContext mContext;
 
 
@@ -72,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
         tvLatitude = findViewById(R.id.tvLat);
         tvLongitude = findViewById(R.id.tvLong);
+        tvLngIs = findViewById(R.id.tvLatIs);
+        tvLatIs = findViewById(R.id.tvLngIs);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter("UpdateLocation"));
 
@@ -85,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MyLocation", "onReceive");
             tvLatitude.setText("Latitude: " + Double.toString(intent.getDoubleExtra("Latitude", 0.0d)));
             tvLongitude.setText("Longitude: " + Double.toString(intent.getDoubleExtra("Longitude", 0.0d)));
+            tvLatIs.setText("Latitude: " + Double.toString(intent.getDoubleExtra("Latitude", 0.0d)));
+            tvLngIs.setText("Longitude: " + Double.toString(intent.getDoubleExtra("Longitude", 0.0d)));
         }
     };
 }

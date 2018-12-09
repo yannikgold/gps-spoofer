@@ -3,6 +3,4 @@
     <string name="google_maps_web_services_key" templateMergeStrategy="preserve">AIzaSyCMr_RAVQ_J99pD0EDZOkwNHmt1sm4jh08</string>
     <string name="SetLong">0.01</string>
     <string name="SetLat">0.01</string>
-    <string name="ModLong">0.001</string>
-    <string name="ModLat">0.001</string>
 </resources>
